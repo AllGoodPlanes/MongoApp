@@ -1,1 +1,1 @@
-web: gomongolab
+web: MongoApp
