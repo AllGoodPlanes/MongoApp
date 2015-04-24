@@ -1,1 +1,1 @@
-web: eAddress.go
+web: MongoApp
