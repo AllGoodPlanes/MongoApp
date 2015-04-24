@@ -1,1 +1,1 @@
-web: eAddress
+web: eAddress.go
