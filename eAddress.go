@@ -2,15 +2,23 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"html/template"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net/http"
 	"os"
 )
 
+const (
+	MongoDBHosts = "ds043972.mlab.com:43972"
+	AuthDatabase = "heroku_f0x75xqs"
+	AuthUserName = "heroku_f0x75xqs"
+	AuthPassword = "4pl8admjuddvlqu95p793kucia"
+	TestDatabase = "heroku_f0x75xqs"
+)
+
 type AddressData struct {
-	name  string `bson:"Name"`
+	Name  string `bson:"Name"`
 	Email string `bson:"Email"`
 }
 
@@ -73,22 +81,21 @@ var displayTemplate = template.Must(template.New("display").Parse(displayTemplat
 
 func display(w http.ResponseWriter, r *http.Request) {
 
-	uri := os.Getenv("MONGOLAB_URI")
-	if uri == "" {
-		fmt.Println("no connection string provided")
-		os.Exit(1)
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{MongoDBHosts},
+		Database: AuthDatabase,
+		Username: AuthUserName,
+		Password: AuthPassword,
 	}
 
-	sess, err := mgo.Dial(uri)
+	mongoSession, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
-		os.Exit(1)
+		fmt.Println("error1")
 	}
-	defer sess.Close()
 
-	sess.SetSafe(&mgo.Safe{})
+	mongoSession.SetMode(mgo.Monotonic, true)
 
-	collection := sess.DB("go2mydata").C("AddressData")
+	collection := mongoSession.DB(TestDatabase).C("AddressData")
 
 	var result AddressData
 
