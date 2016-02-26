@@ -1,48 +1,45 @@
 package main
 
 import (
-  
-  "fmt"
-  "os"
+	"fmt"
+	"html/template"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"net/http"
-  "html/template"
-  "labix.org/v2/mgo"  
-  "labix.org/v2/mgo/bson"  
-  )
+	"os"
+)
 
-type AddressData struct{
-     name string `bson:"Name"`
-     Email string `bson:"Email"`      
+type AddressData struct {
+	name  string `bson:"Name"`
+	Email string `bson:"Email"`
 }
 
 func main() {
-  http.HandleFunc("/", root)
+	http.HandleFunc("/", root)
 	http.HandleFunc("/display", display)
 	fmt.Println("listening...")
-        err := http.ListenAndServe(GetPort(), nil)
-        if err != nil {
-                panic(err)
-        }
-}
- 
-// Get the Port from the environment
-func GetPort() string {
-        var port = os.Getenv("PORT")
-        // Set a default port if there is nothing in the environment
-        if port == "" {
-                port = "8080"
-                fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
-        }
-        return ":" + port
-}
- 
-func root(res http.ResponseWriter, req *http.Request) {
-        fmt.Fprint(res, rootForm)
+	err := http.ListenAndServe(GetPort(), nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
-const rootForm=
-	
-`<!doctype html>
+// Get the Port from the environment
+func GetPort() string {
+	var port = os.Getenv("PORT")
+	// Set a default port if there is nothing in the environment
+	if port == "" {
+		port = "8080"
+		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+	}
+	return ":" + port
+}
+
+func root(res http.ResponseWriter, req *http.Request) {
+	fmt.Fprint(res, rootForm)
+}
+
+const rootForm = `<!doctype html>
 <html>
     <head>
 <style>
@@ -68,49 +65,46 @@ legend {color: yellow}
                         </form>
                         </p>
               </fielsset>
-        </form>              
+        </form>
     </body>
 </html>`
-	
 
 var displayTemplate = template.Must(template.New("display").Parse(displayTemplateHTML))
 
 func display(w http.ResponseWriter, r *http.Request) {
-  
-  uri := os.Getenv("MONGOLAB_URL")
-        if uri == "" {
-                fmt.Println("no connection string provided")
-                os.Exit(1)
-        }
- 
-  
-        sess, err := mgo.Dial(uri)
-        if err != nil {
-                fmt.Printf("Can't connect to mongo, go error %v\n", err)
-                os.Exit(1)
-        }
-        defer sess.Close()
-        
-        sess.SetSafe(&mgo.Safe{})
-        
-        collection := sess.DB("go2mydata").C("AddressData")
- 
- var result AddressData
 
-  err = collection.Find(bson.M{"Name": r.FormValue("name")}).One(&result)
+	uri := os.Getenv("MONGOLAB_URI")
+	if uri == "" {
+		fmt.Println("no connection string provided")
+		os.Exit(1)
+	}
 
-if result.Email != "" {
-                errn := displayTemplate.Execute(w, "The email id you wanted is: " + result.Email)
-                if errn != nil {
-                        http.Error(w, errn.Error(), http.StatusInternalServerError)
-                }
-        } else {
-                displayTemplate.Execute(w, "Sorry... The email id you wanted does not exist.")
-        }
+	sess, err := mgo.Dial(uri)
+	if err != nil {
+		fmt.Printf("Can't connect to mongo, go error %v\n", err)
+		os.Exit(1)
+	}
+	defer sess.Close()
+
+	sess.SetSafe(&mgo.Safe{})
+
+	collection := sess.DB("go2mydata").C("AddressData")
+
+	var result AddressData
+
+	err = collection.Find(bson.M{"Name": r.FormValue("name")}).One(&result)
+
+	if result.Email != "" {
+		errn := displayTemplate.Execute(w, "The email id you wanted is: "+result.Email)
+		if errn != nil {
+			http.Error(w, errn.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		displayTemplate.Execute(w, "Sorry... The email id you wanted does not exist.")
+	}
 }
 
-const displayTemplateHTML = 
-		`<!doctype html>
+const displayTemplateHTML = `<!doctype html>
 <html>
     <head>
 <style>
@@ -133,6 +127,6 @@ legend {color: yellow}
                         <p><a href="/">Start again!</a></p>
                         </p>
               </fielsset>
-        </form>              
+        </form>
     </body>
 </html>`
