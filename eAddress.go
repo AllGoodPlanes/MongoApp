@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	MongoDBHosts = "ds043972.mlab.com:43972"
-	AuthDatabase = "heroku_f0x75xqs"
-	AuthUserName = "heroku_f0x75xqs"
-	AuthPassword = "4pl8admjuddvlqu95p793kucia"
-	TestDatabase = "heroku_f0x75xqs"
+	MongoDBHosts = "xxxxx"
+	AuthDatabase = "xxxxx"
+	AuthUserName = "xxxxx"
+	AuthPassword = "xxxxx"
+	TestDatabase = "xxxxx"
 )
 
 type AddressData struct {
